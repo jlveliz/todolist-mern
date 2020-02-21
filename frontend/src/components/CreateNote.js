@@ -5,40 +5,74 @@ import 'react-datepicker/dist/react-datepicker.css'
 
 export default class CreateNote extends Component {
 
-
     state = {
-        users : [],
-        userSelected : null,
+        users: [],
+        userSelected: null,
         title: '',
         content: '',
-        date: new Date()
+        date: new Date(),
+        isEdit: false,
+        _id: null
     }
 
     onSubmit = async (e) => {
-      e.preventDefault()
-      console.log(this.state)
-       
+        e.preventDefault()
+        const newNote = {
+            title: this.state.title,
+            content:this.state.content,
+            date: this.state.date,
+            author: this.state.userSelected
+        };
+
+        if(this.state.isEdit) {
+            await axios.put('http://localhost:5000/api/notes/' + this.state._id, newNote)
+        } else {
+            await axios.post('http://localhost:5000/api/notes',newNote)
+        }
+
+        window.location.href = '/'
     }
-    
+
 
     async getUsers() {
         const res = await axios.get('http://localhost:5000/api/users')
-        this.setState({ users: res.data.message.map(user => user.username) })
-        console.log(this.state.users);
+        this.setState({ 
+            users: res.data.message.map(user => user.username) ,
+            userSelected: res.data.message[0].username
+        })
+        
+    }
+
+    async getNote(id) {
+        return  await axios.get('http://localhost:5000/api/notes/' + id )   
     }
 
     async componentDidMount() {
         this.getUsers()
+        const idNote = this.props.match.params.id
+        if (idNote) {
+            this.setState({isEdit: true, idNote: idNote})
+            const note = this.getNote(idNote)
+            note.then( res => {
+                this.setState({
+                    userSelected : res.data.author,
+                    title : res.data.title,
+                    content : res.data.content,
+                    date : new Date(res.data.date)
+                })   
+            })
+        }
+        
     }
 
     onInputChange = (e) => {
         this.setState({
-            [e.target.name] : e.target.value
+            [e.target.name]: e.target.value
         })
     }
 
     changeDate = (date) => {
-        this.setState({date})
+        this.setState({ date })
     }
 
     render() {
@@ -59,43 +93,46 @@ export default class CreateNote extends Component {
                             <form onSubmit={this.onSubmit}>
                                 <div className="form-group">
                                     <select className="form-control"
-                                    name="userSelected"
-                                    onChange={this.onInputChange}>
-                                    {
-                                        this.state.users.map( user => 
-                                            <option key={user} value={user}>
-                                                {user}
-                                            </option>)
-                                    }
+                                        name="userSelected"
+                                        onChange={this.onInputChange}
+                                        value={this.state.userSelected}>
+                                        {
+                                            this.state.users.map(user =>
+                                                <option key={user} value={user}>
+                                                    {user}
+                                                </option>)
+                                        }
                                     </select>
-                                
+
                                 </div>
 
                                 <div className="form-group">
-                                    <input 
-                                        type="text" 
-                                        className="form-control" 
-                                        placeholder="Title" 
-                                        name="title" 
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Title"
+                                        name="title"
                                         required
-                                        onChange={this.onInputChange}/>
+                                        onChange={this.onInputChange} 
+                                        value={this.state.title}/>
                                 </div>
                                 <div className="form-group">
-                                    <textarea 
-                                    className="form-control" 
-                                    placeholder="Content" 
-                                    mame="content" 
-                                    required
-                                    onChange={this.onInputChange}></textarea>
+                                    <textarea
+                                        className="form-control"
+                                        placeholder="Content"
+                                        name="content"
+                                        required
+                                        onChange={this.onInputChange}
+                                        value={this.state.content}></textarea>
                                 </div>
                                 <div className="form-group">
-                                    <DatePicker 
+                                    <DatePicker
                                         className="form-control"
                                         selected={this.state.date}
                                         onChange={this.changeDate}
                                     />
                                 </div>
-                                <button type="submit" className="btn btn-primary btn-block">Save</button>
+                                <button type="submit" className="btn btn-primary btn-block">Save</button>    
                             </form>
                         </div>
                     </div>

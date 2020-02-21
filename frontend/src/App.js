@@ -16,7 +16,7 @@ function App() {
     <Router>
           <Navigations/>
           <div className="container pt-2">
-            <h3>Aplicacion React</h3>
+            <h3 className="text-center">Aplicacion React</h3>
             
             <Route path="/" component={NotesList} exact/>
             <Route path="/edit/:id" component={CreateNote}/>

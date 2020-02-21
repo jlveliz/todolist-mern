@@ -24,6 +24,7 @@ export default class CreateUser extends Component {
     }
 
     onSubmit = async (e) => {
+       
         e.preventDefault();
         await axios.post('http://localhost:5000/api/users', {
             username: this.state.username
